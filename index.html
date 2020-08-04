@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Log Highlighter</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <style>
+      p > span {
+        background: yellow;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div>Term: {{ message }}</div>
+      <input type="file" v-on:change="reader" />
+      <div v-for="line in higlightedLines"><p v-on:click="selectText" v-html="line"></p></div>
+    </div>
+    <script>
+      var app = new Vue({
+        el: "#app",
+        data: {
+          message: "",
+          lines: [],
+        },
+        computed: {
+          higlightedLines: function () {
+            res = [];
+            for (const line of this.lines) {
+              let text = line.text;
+              if (this.message) {
+                const pieces = text.split(this.message);
+                text = pieces.join("<span>" + this.message + "</span>");
+                if (text.includes(this.message)) {
+                  const idx = text.indexOf(" ");
+                  text = "<span>" + text.slice(0, idx) + "</span>" + text.slice(idx);
+                }
+              }
+              res.push(text);
+            }
+            return res;
+          },
+        },
+        methods: {
+          selectText: function () {
+            selection = window.getSelection();
+            this.message = selection.toString();
+          },
+          reader: function (ev) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+              const rawLines = ev.target.result.split("\n");
+              this.lines = [];
+              for (const line of rawLines) {
+                this.lines.push({ text: line });
+              }
+            };
+            reader.readAsText(ev.target.files[0]);
+          },
+        },
+      });
+    </script>
+  </body>
+</html>
