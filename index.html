@@ -12,9 +12,24 @@
   </head>
   <body>
     <div id="app">
-      <div>Term: {{ message }}</div>
-      <input type="file" v-on:change="reader" />
-      <div v-for="line in higlightedLines"><p v-on:click="selectText" v-html="line"></p></div>
+      <header>
+        <div>Term: {{ message }}</div>
+        <div>
+          <h3>Status codes:</h3>
+          <button v-on:click="higlightTerm($event, 200)">200</button>
+          <button v-on:click="higlightTerm($event, 201)">201</button>
+          <button v-on:click="higlightTerm($event, 404)">404</button>
+          <button v-on:click="higlightTerm($event, 500)">500</button>
+          <h3>HTTP Methods:</h3>
+          <button v-on:click="higlightTerm($event, 'HEAD')">HEAD</button>
+          <button v-on:click="higlightTerm($event, 'GET')">GET</button>
+          <button v-on:click="higlightTerm($event, 'POST')">POST</button>
+        </div>
+        <input type="file" v-on:change="reader" />
+      </header>
+      <div>
+        <div v-for="line in higlightedLines"><p v-on:click="selectText" v-html="line"></p></div>
+      </div>
     </div>
     <script>
       var app = new Vue({
@@ -45,6 +60,9 @@
           selectText: function () {
             selection = window.getSelection();
             this.message = selection.toString();
+          },
+          higlightTerm: function(ev, term) {
+            this.message = term;
           },
           reader: function (ev) {
             const reader = new FileReader();
