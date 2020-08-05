@@ -13,7 +13,7 @@
   <body>
     <div id="app">
       <header>
-        <div>Term: {{ message }}</div>
+        <div>Term: {{ message }}; Counter: {{ counter }}</div>
         <div>
           <h3>Status codes:</h3>
           <button v-on:click="higlightTerm($event, 200)">200</button>
@@ -24,53 +24,77 @@
           <button v-on:click="higlightTerm($event, 'HEAD')">HEAD</button>
           <button v-on:click="higlightTerm($event, 'GET')">GET</button>
           <button v-on:click="higlightTerm($event, 'POST')">POST</button>
+          <p>
+          <input id="change-mode" type="checkbox" @change='toggleMode'></input>
+          <label for="change-mode">Filter</label>
+          <hr>
         </div>
         <input type="file" v-on:change="reader" />
       </header>
       <div>
-        <div v-for="line in higlightedLines"><p v-on:click="selectText" v-html="line"></p></div>
+        <div v-on:click="selectText" v-for="line in dataLines"><p v-html="line"></p></div>
       </div>
     </div>
     <script>
       var app = new Vue({
         el: "#app",
         data: {
+          modeFilter: false,
           message: "",
           lines: [],
+          counter: 0,
+        },
+        created() {
+          let uri = window.location.search.substring(1);
+          let params = new URLSearchParams(uri);
+          this.message = params.get("q");
         },
         computed: {
-          higlightedLines: function () {
+          dataLines: function () {
             res = [];
+            this.counter = 0;
             for (const line of this.lines) {
               let text = line.text;
               if (this.message) {
-                const pieces = text.split(this.message);
-                text = pieces.join("<span>" + this.message + "</span>");
                 if (text.includes(this.message)) {
+                  const pieces = text.split(this.message);
+                  text = pieces.join("<span>" + this.message + "</span>");
+                  // Highlight IP addr
                   const idx = text.indexOf(" ");
-                  text = "<span>" + text.slice(0, idx) + "</span>" + text.slice(idx);
-                }
+                    text = "<span>" + text.slice(0, idx) + "</span>" + text.slice(idx);
+                  this.counter++;
+                } else {
+                  if (this.modeFilter) continue;
+                };
               }
-              res.push(text);
+              let id = line.id;
+              const link = `<a id="${id}" href="#${id}">#${id}</a>`;
+                res.push(link + '&nbsp'+text);
             }
             return res;
           },
         },
         methods: {
+          toggleMode: function() {
+            // Toggle mode: Filter or Highlight
+            this.modeFilter = !this.modeFilter;
+          },
           selectText: function () {
-            selection = window.getSelection();
-            this.message = selection.toString();
+            // Get search term
+            selection = window.getSelection().toString();
+            if (selection) this.message = selection;
           },
           higlightTerm: function(ev, term) {
             this.message = term;
           },
           reader: function (ev) {
+            // Read file and populate data
             const reader = new FileReader();
             reader.onload = (ev) => {
               const rawLines = ev.target.result.split("\n");
               this.lines = [];
-              for (const line of rawLines) {
-                this.lines.push({ text: line });
+              for (const [idx, line] of rawLines.entries()) {
+                this.lines.push({ text: line, id: idx+1 });
               }
             };
             reader.readAsText(ev.target.files[0]);
