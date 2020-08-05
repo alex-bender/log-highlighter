@@ -8,25 +8,31 @@
       p > span {
         background: yellow;
       }
+      p > em {
+        background: aquamarine;
+      }
     </style>
   </head>
   <body>
     <div id="app">
       <header>
-        <div>Term: {{ message }}; Counter: {{ counter }}</div>
+          <div>Term: <i>{{ message }}</i>; Counter: {{ counter }}; Total: <a v-bind:href="`#${total}`">{{ total }}</a></div>
         <div>
           <h3>Status codes:</h3>
-          <button v-on:click="higlightTerm($event, 200)">200</button>
-          <button v-on:click="higlightTerm($event, 201)">201</button>
-          <button v-on:click="higlightTerm($event, 404)">404</button>
-          <button v-on:click="higlightTerm($event, 500)">500</button>
+          <button v-on:click="higlightTerm($event, ' 200 ')">200</button>
+          <button v-on:click="higlightTerm($event, ' 201 ')">201</button>
+          <button v-on:click="higlightTerm($event, ' 404 ')">404</button>
+          <button v-on:click="higlightTerm($event, ' 500 ')">500</button>
           <h3>HTTP Methods:</h3>
           <button v-on:click="higlightTerm($event, 'HEAD')">HEAD</button>
-          <button v-on:click="higlightTerm($event, 'GET')">GET</button>
+          <button v-on:click="higlightTerm($event, 'GET' )">GET</button>
           <button v-on:click="higlightTerm($event, 'POST')">POST</button>
           <p>
           <input id="change-mode" type="checkbox" @change='toggleMode'></input>
           <label for="change-mode">Filter</label>
+          <p>
+          <input v-model.lazy="auxHighlight" type="text"></input>
+          <label>Auxilary Highlight</label>
           <hr>
         </div>
         <input type="file" v-on:change="reader" />
@@ -43,6 +49,8 @@
           message: "",
           lines: [],
           counter: 0,
+          total: 0,
+          auxHighlight: ""
         },
         created() {
           let uri = window.location.search.substring(1);
@@ -66,10 +74,14 @@
                 } else {
                   if (this.modeFilter) continue;
                 };
+                if (this.auxHighlight.length > 0 && text.includes(this.auxHighlight)) {
+                  const pieces = text.split(this.auxHighlight);
+                  text = pieces.join("<em>" + this.auxHighlight + "</em>");
+                };
               }
               let id = line.id;
               const link = `<a id="${id}" href="#${id}">#${id}</a>`;
-                res.push(link + '&nbsp'+text);
+              res.push(link + '&nbsp'+text);
             }
             return res;
           },
@@ -96,6 +108,7 @@
               for (const [idx, line] of rawLines.entries()) {
                 this.lines.push({ text: line, id: idx+1 });
               }
+              this.total = this.lines.length;
             };
             reader.readAsText(ev.target.files[0]);
           },
