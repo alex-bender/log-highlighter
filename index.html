@@ -11,6 +11,27 @@
       p > em {
         background: aquamarine;
       }
+      .message-bar {
+        position: fixed;
+        bottom: 0;
+        background-color: darkgrey;
+        width: 100%;
+        max-height: 200px;
+        overflow-x: scroll;
+        left: 0;
+        opacity: 0.8;
+      }
+      .message-bar > p {
+        margin: 0;
+      }
+      .message-bar>p:nth-of-type(even) {
+        background-color: grey;
+      }
+      #hide-logs {
+        position: fixed;
+        right: 0px;
+        color: red;
+      }
     </style>
   </head>
   <body>
@@ -28,11 +49,18 @@
           <button v-on:click="higlightTerm($event, 'GET' )">GET</button>
           <button v-on:click="higlightTerm($event, 'POST')">POST</button>
           <p>
-          <input id="change-mode" type="checkbox" @change='toggleMode'></input>
+          <input id="change-mode" type="checkbox" v-model='modeFilter'></input>
           <label for="change-mode">Filter</label>
           <p>
           <input v-model.lazy="auxHighlight" type="text"></input>
           <label>Auxilary Highlight</label>
+          <p>
+          <button @click="message = '';history = []">Clear history</button>
+          <ul id="highlight-history">
+            <li v-for="item in history">
+                <button v-on:click="higlightTerm($event, item.query)">{{ item.query }}</button>{{ item.counter }}
+            </li>
+          </ul>
           <hr>
         </div>
         <input type="file" v-on:change="reader" />
@@ -40,7 +68,12 @@
       <div>
         <div v-on:click="selectText" v-for="line in dataLines"><p v-html="line"></p></div>
       </div>
+      <div class="message-bar" id='logs'>
+          <button v-on:click="hideLogBar" id="hide-logs">Close</button>
+          <p v-for="(line, id) in logging">{{ id+1 }}: {{line.term}} {{line.time}}</p>
+      </div>
     </div>
+
     <script>
       var app = new Vue({
         el: "#app",
@@ -50,7 +83,9 @@
           lines: [],
           counter: 0,
           total: 0,
-          auxHighlight: ""
+          auxHighlight: "",
+          history: [],
+          logging: [],
         },
         created() {
           let uri = window.location.search.substring(1);
@@ -83,21 +118,33 @@
               const link = `<a id="${id}" href="#${id}">#${id}</a>`;
               res.push(link + '&nbsp'+text);
             }
+            if (this.message) this.history.unshift({query: this.message, counter: this.counter});
+            if (this.history.length > 10) this.history.pop();
             return res;
           },
         },
         methods: {
-          toggleMode: function() {
-            // Toggle mode: Filter or Highlight
-            this.modeFilter = !this.modeFilter;
+          hideLogBar: function () {
+            var bar = document.getElementById('logs');
+            bar.style.display = "none";
+          },
+          log: function(msg) {
+            const time = new Date().getTime();
+            this.logging.push({term: msg, time: time});
+            var bar = document.getElementById('logs');
+            bar.scrollTop = bar.scrollHeight;
           },
           selectText: function () {
             // Get search term
             selection = window.getSelection().toString();
-            if (selection) this.message = selection;
+            if (selection) {
+              this.message = selection;
+            };
+            this.log(selection);
           },
           higlightTerm: function(ev, term) {
             this.message = term;
+            this.log(term);
           },
           reader: function (ev) {
             // Read file and populate data
