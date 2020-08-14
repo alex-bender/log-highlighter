@@ -2,8 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Log Highlighter</title>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.0/css/bulma.min.css">
     <style>
       p > span {
         background: yellow;
@@ -19,7 +21,7 @@
         max-height: 200px;
         overflow-x: scroll;
         left: 0;
-        opacity: 0.8;
+        # opacity: 0.8;
       }
       .message-bar > p {
         margin: 0;
@@ -30,35 +32,35 @@
       #hide-logs {
         position: fixed;
         right: 0px;
-        color: red;
       }
     </style>
   </head>
   <body>
     <div id="app">
       <header>
-          <div>Term: <i>{{ message }}</i>; Counter: {{ counter }}; Total: <a v-bind:href="`#${total}`">{{ total }}</a></div>
+          <div>Term: <i class="has-text-link-dark">{{ message }}</i>; Counter: {{ counter }}; Total: <a v-bind:href="`#${total}`">{{ total }}</a></div>
         <div>
-          <h3>Status codes:</h3>
-          <button v-on:click="higlightTerm($event, ' 200 ')">200</button>
-          <button v-on:click="higlightTerm($event, ' 201 ')">201</button>
-          <button v-on:click="higlightTerm($event, ' 404 ')">404</button>
-          <button v-on:click="higlightTerm($event, ' 500 ')">500</button>
-          <h3>HTTP Methods:</h3>
-          <button v-on:click="higlightTerm($event, 'HEAD')">HEAD</button>
-          <button v-on:click="higlightTerm($event, 'GET' )">GET</button>
-          <button v-on:click="higlightTerm($event, 'POST')">POST</button>
+          <h3 class="has-text-weight-bold">Status codes:</h3>
+          <button class="button is-small is-success" v-on:click="higlightTerm($event, ' 200 ')">200</button>
+          <button class="button is-small is-success" v-on:click="higlightTerm($event, ' 201 ')">201</button>
+          <button class="button is-small is-warning" v-on:click="higlightTerm($event, ' 404 ')">404</button>
+          <button class="button is-small is-danger"  v-on:click="higlightTerm($event, ' 500 ')">500</button>
+          <h3 class="has-text-weight-bold">HTTP Methods:</h3>
+          <button class="button is-small is-outlined" v-on:click="higlightTerm($event, 'HEAD')">HEAD</button>
+          <button class="button is-small is-outlined" v-on:click="higlightTerm($event, 'GET' )">GET</button>
+          <button class="button is-small is-outlined" v-on:click="higlightTerm($event, 'POST')">POST</button>
           <p>
           <input id="change-mode" type="checkbox" v-model='modeFilter'></input>
           <label for="change-mode">Filter</label>
           <p>
+          <!-- #FIXME does not reload until call `higlightTerm' -->
           <input v-model.lazy="auxHighlight" type="text"></input>
           <label>Auxilary Highlight</label>
           <p>
-          <button @click="message = '';history = []">Clear history</button>
+          <button class="button is-small is-danger" @click="message = '';history = []">Clear history</button>
           <ul id="highlight-history">
             <li v-for="item in history">
-                <button v-on:click="higlightTerm($event, item.query)">{{ item.query }}</button>{{ item.counter }}
+                <button class="button is-small is-outlined" v-on:click="higlightTerm($event, item.query)">{{ item.query }}</button>{{ item.counter }}
             </li>
           </ul>
           <hr>
@@ -69,7 +71,7 @@
         <div v-on:click="selectText" v-for="line in dataLines"><p v-html="line"></p></div>
       </div>
       <div class="message-bar" id='logs'>
-          <button v-on:click="hideLogBar" id="hide-logs">Close</button>
+          <button class="button is-small is-danger" v-on:click="hideLogBar" id="hide-logs">Close</button>
           <p v-for="(line, id) in logging">{{ id+1 }}: {{line.term}} {{line.time}}</p>
       </div>
     </div>
@@ -139,8 +141,8 @@
             selection = window.getSelection().toString();
             if (selection) {
               this.message = selection;
+              this.log(selection);
             };
-            this.log(selection);
           },
           higlightTerm: function(ev, term) {
             this.message = term;
